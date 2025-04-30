@@ -1,0 +1,31 @@
+name: temp_pay
+description: "A new Flutter project."
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  azlistview: ^2.0.0
+  photo_manager: ^3.6.4
+  in_app_purchase: ^3.1.11
+  contacts_service: ^0.6.3
+  permission_handler: ^11.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: iconfont # 字体名称
+      fonts:
+        - asset: fonts/iconfont.ttf # 字体文件路径
+
+  assets:
+    - assets/
