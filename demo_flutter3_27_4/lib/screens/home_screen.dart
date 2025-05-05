@@ -9,6 +9,7 @@ import '../services/media_service.dart';
 import '../screens/photo_management_screen.dart';
 import '../screens/video_management_screen.dart';
 import '../screens/contact_management_screen.dart';
+import '../screens/pro_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -40,14 +41,20 @@ class _HomeScreenState extends State<HomeScreen> {
               fontWeight: FontWeight.w600,
               fontSize: 20,
               letterSpacing: 0.5,
+              color: Colors.white,
             )),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+            icon: Image.asset('assets/images/pro.png', width: 24, height: 24),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProScreen()),
+              );
+            },
           ),
         ],
       ),

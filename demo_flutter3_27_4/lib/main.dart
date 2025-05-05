@@ -6,6 +6,7 @@ import 'services/battery_service.dart';
 import 'services/media_service.dart';
 import 'services/media_editor_service.dart';
 import 'services/membership_service.dart';
+import 'services/pay_service.dart';
 import 'services/file_service.dart';
 import 'services/file_editor_service.dart';
 import 'screens/home_screen.dart';
@@ -32,6 +33,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => MediaService()),
         ChangeNotifierProvider(create: (_) => MediaEditorService()),
         ChangeNotifierProvider(create: (_) => MembershipService()),
+        ChangeNotifierProvider(create: (_) => PayService()),
         ChangeNotifierProvider(create: (_) => FileService()),
         ChangeNotifierProvider(create: (_) => FileEditorService()),
       ],
@@ -67,11 +69,13 @@ class _MyAppState extends State<MyApp> {
     final storageService = Provider.of<StorageService>(context, listen: false);
     final batteryService = Provider.of<BatteryService>(context, listen: false);
     final mediaService = Provider.of<MediaService>(context, listen: false);
+    final payService = Provider.of<PayService>(context, listen: false);
 
     // Initialize each service
     storageService.analyzeStorage();
     batteryService.updateBatteryInfo();
     mediaService.loadMediaFiles();
+    payService.initialize();
   }
 
   @override

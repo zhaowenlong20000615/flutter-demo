@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/share_service.dart';
+import 'pro_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -28,119 +29,130 @@ class SettingsScreen extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20.0, vertical: 8.0),
-                    child: Container(
-                      height: 150,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF3C5FFE), Color(0xFF5B7FFE)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFF3C5FFE).withOpacity(0.3),
-                            offset: Offset(0, 4),
-                            blurRadius: 12,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProScreen(),
                           ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          // 装饰元素
-                          Positioned(
-                            right: -10,
-                            top: -20,
-                            child: Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                shape: BoxShape.circle,
+                        );
+                      },
+                      child: Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF3C5FFE), Color(0xFF5B7FFE)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFF3C5FFE).withOpacity(0.3),
+                              offset: Offset(0, 4),
+                              blurRadius: 12,
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            // 装饰元素
+                            Positioned(
+                              right: -10,
+                              top: -20,
+                              child: Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
                               ),
                             ),
-                          ),
-                          Positioned(
-                            right: 20,
-                            top: 0,
-                            bottom: 0,
-                            child: Icon(
-                              Icons.star_rounded,
-                              color: Colors.white.withOpacity(0.9),
-                              size: 70,
+                            Positioned(
+                              right: 20,
+                              top: 0,
+                              bottom: 0,
+                              child: Image.asset(
+                                'assets/images/pro.png',
+                                width: 50,
+                                height: 50,
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      '解锁无限制访问',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: -0.5,
-                                      ),
-                                    ),
-                                    SizedBox(width: 8),
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        'PRO',
+                            Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '解锁无限制访问',
                                         style: TextStyle(
-                                          color: Color(0xFF3C5FFE),
+                                          color: Colors.white,
+                                          fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
+                                          letterSpacing: -0.5,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  '解锁所有功能',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        offset: Offset(0, 2),
-                                        blurRadius: 4,
+                                      SizedBox(width: 8),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          'PRO',
+                                          style: TextStyle(
+                                            color: Color(0xFF3C5FFE),
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                   ),
-                                  child: Text(
-                                    '了解更多',
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '解锁所有功能',
                                     style: TextStyle(
-                                      color: Color(0xFF3C5FFE),
-                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 14,
                                     ),
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 10),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          offset: Offset(0, 2),
+                                          blurRadius: 4,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      '了解更多',
+                                      style: TextStyle(
+                                        color: Color(0xFF3C5FFE),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
