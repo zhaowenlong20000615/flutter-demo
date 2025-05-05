@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/share_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -173,6 +174,7 @@ class SettingsScreen extends StatelessWidget {
                       title: '分享',
                       iconData: Icons.share_outlined,
                       showDivider: true,
+                      onTap: () => ShareService.shareApp(context),
                     ),
                     _buildSettingsTile(
                       title: '评价',
@@ -228,6 +230,7 @@ class SettingsScreen extends StatelessWidget {
     required String title,
     IconData? iconData,
     bool showDivider = true,
+    VoidCallback? onTap,
   }) {
     return Column(
       children: [
@@ -259,7 +262,7 @@ class SettingsScreen extends StatelessWidget {
             size: 22,
           ),
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-          onTap: () {},
+          onTap: onTap ?? () {},
         ),
         if (showDivider)
           Divider(

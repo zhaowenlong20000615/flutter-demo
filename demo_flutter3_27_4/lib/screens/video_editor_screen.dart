@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:video_player/video_player.dart';
+import 'package:photo_manager/photo_manager.dart';
 import '../services/media_editor_service.dart';
 
 class VideoEditorScreen extends StatefulWidget {
@@ -24,16 +25,16 @@ class _VideoEditorScreenState extends State<VideoEditorScreen> {
   File? _selectedVideo;
   File? _processedVideo;
   bool _isProcessing = false;
-  VideoQuality _selectedQuality = VideoQuality.MediumQuality;
+  RequestType _selectedQuality = RequestType.video;
   VideoPlayerController? _videoController;
   bool _isPlaying = false;
 
   final ImagePicker _videoPicker = ImagePicker();
-  final Map<VideoQuality, String> _qualityLabels = {
-    VideoQuality.DefaultQuality: '默认',
-    VideoQuality.LowQuality: '低',
-    VideoQuality.MediumQuality: '中',
-    VideoQuality.HighestQuality: '高',
+  final Map<RequestType, String> _qualityLabels = {
+    RequestType.video: '默认',
+    RequestType.image: '低',
+    RequestType.audio: '中',
+    RequestType.all: '高',
   };
 
   @override
@@ -286,7 +287,7 @@ class _VideoEditorScreenState extends State<VideoEditorScreen> {
     );
   }
 
-  Widget _buildQualityOption(VideoQuality quality, String label) {
+  Widget _buildQualityOption(RequestType quality, String label) {
     final bool isSelected = _selectedQuality == quality;
 
     return InkWell(

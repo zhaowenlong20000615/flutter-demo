@@ -6,6 +6,8 @@ import 'services/battery_service.dart';
 import 'services/media_service.dart';
 import 'services/media_editor_service.dart';
 import 'services/membership_service.dart';
+import 'services/file_service.dart';
+import 'services/file_editor_service.dart';
 import 'screens/home_screen.dart';
 import 'screens/privacy_screen.dart';
 import 'screens/tools_screen.dart';
@@ -30,6 +32,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => MediaService()),
         ChangeNotifierProvider(create: (_) => MediaEditorService()),
         ChangeNotifierProvider(create: (_) => MembershipService()),
+        ChangeNotifierProvider(create: (_) => FileService()),
+        ChangeNotifierProvider(create: (_) => FileEditorService()),
       ],
       child: const MyApp(),
     ),

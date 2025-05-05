@@ -1,67 +1,67 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:photo_manager/photo_manager.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_contacts_service/flutter_contacts_service.dart' as fcs;
+import 'package:path/path.dart' as path;
 import '../models/contact_info.dart';
 
-class MediaService with ChangeNotifier {
-  List<AssetEntity> _images = [];
-  List<AssetEntity> _videos = [];
-  List<AssetEntity> _audio = [];
+class FileService with ChangeNotifier {
+  List<File> _images = [];
+  List<File> _videos = [];
+  List<File> _audio = [];
   List<ContactInfo> _contacts = [];
-  Set<AssetEntity> _selectedAssets = {};
+  Set<File> _selectedFiles = {};
   Set<ContactInfo> _selectedContacts = {};
 
-  List<AssetEntity> get images => _images;
-  List<AssetEntity> get videos => _videos;
-  List<AssetEntity> get audio => _audio;
+  List<File> get images => _images;
+  List<File> get videos => _videos;
+  List<File> get audio => _audio;
   List<ContactInfo> get contacts => _contacts;
-  Set<AssetEntity> get selectedAssets => _selectedAssets;
+  Set<File> get selectedFiles => _selectedFiles;
   Set<ContactInfo> get selectedContacts => _selectedContacts;
 
   Future<void> loadMediaFiles() async {
-    final PermissionState ps = await PhotoManager.requestPermissionExtend();
-    if (ps.isAuth || ps.hasAccess) {
+    if (await Permission.storage.request().isGranted) {
       try {
-        // 获取所有相册
-        final List<AssetPathEntity> paths =
-            await PhotoManager.getAssetPathList();
-        if (paths.isEmpty) return;
-
-        // 获取"全部"相册
-        final AssetPathEntity path = paths.first;
-
-        // 清空旧数据
-        _images = [];
-        _videos = [];
-        _audio = [];
-
-        // 获取媒体资源
-        final List<AssetEntity> assets =
-            await path.getAssetListRange(start: 0, end: 1000);
-
-        // 按类型分类
-        for (var asset in assets) {
-          switch (asset.type) {
-            case AssetType.image:
-              _images.add(asset);
-              break;
-            case AssetType.video:
-              _videos.add(asset);
-              break;
-            case AssetType.audio:
-              _audio.add(asset);
-              break;
-            default:
-              break;
-          }
+        final List<Directory> storageDirectories =
+            await getExternalStorageDirectories() ?? [];
+        for (var dir in storageDirectories) {
+          await _scanMediaFiles(dir);
         }
-
         notifyListeners();
       } catch (e) {
         debugPrint('Error loading media files: $e');
       }
+    }
+  }
+
+  Future<void> _scanMediaFiles(Directory directory) async {
+    try {
+      final List<FileSystemEntity> entities =
+          await directory.list(recursive: true).toList();
+
+      for (var entity in entities) {
+        if (entity is File) {
+          final path = entity.path.toLowerCase();
+          if (path.endsWith('.jpg') ||
+              path.endsWith('.jpeg') ||
+              path.endsWith('.png') ||
+              path.endsWith('.gif')) {
+            _images.add(entity);
+          } else if (path.endsWith('.mp4') ||
+              path.endsWith('.avi') ||
+              path.endsWith('.mov')) {
+            _videos.add(entity);
+          } else if (path.endsWith('.mp3') ||
+              path.endsWith('.wav') ||
+              path.endsWith('.aac')) {
+            _audio.add(entity);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error scanning media files: $e');
     }
   }
 
@@ -78,16 +78,13 @@ class MediaService with ChangeNotifier {
     }
   }
 
-  Future<void> deleteMediaFile(AssetEntity asset) async {
+  Future<void> deleteMediaFile(File file) async {
     try {
-      final List<String> result =
-          await PhotoManager.editor.deleteWithIds([asset.id]);
-      if (result.isNotEmpty) {
-        _images.removeWhere((a) => a.id == asset.id);
-        _videos.removeWhere((a) => a.id == asset.id);
-        _audio.removeWhere((a) => a.id == asset.id);
-        notifyListeners();
-      }
+      await file.delete();
+      _images.remove(file);
+      _videos.remove(file);
+      _audio.remove(file);
+      notifyListeners();
     } catch (e) {
       debugPrint('Error deleting media file: $e');
     }
@@ -135,11 +132,11 @@ class MediaService with ChangeNotifier {
     }
   }
 
-  void toggleAssetSelection(AssetEntity asset) {
-    if (_selectedAssets.contains(asset)) {
-      _selectedAssets.remove(asset);
+  void toggleFileSelection(File file) {
+    if (_selectedFiles.contains(file)) {
+      _selectedFiles.remove(file);
     } else {
-      _selectedAssets.add(asset);
+      _selectedFiles.add(file);
     }
     notifyListeners();
   }
@@ -153,19 +150,12 @@ class MediaService with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deleteSelectedAssets() async {
-    final List<String> ids = _selectedAssets.map((asset) => asset.id).toList();
-    final List<String> deletedIds =
-        await PhotoManager.editor.deleteWithIds(ids);
-
-    if (deletedIds.isNotEmpty) {
-      // 移除已删除的资源
-      _images.removeWhere((asset) => deletedIds.contains(asset.id));
-      _videos.removeWhere((asset) => deletedIds.contains(asset.id));
-      _audio.removeWhere((asset) => deletedIds.contains(asset.id));
-      _selectedAssets.clear();
-      notifyListeners();
+  Future<void> deleteSelectedFiles() async {
+    for (final file in _selectedFiles) {
+      await deleteMediaFile(file);
     }
+    _selectedFiles.clear();
+    notifyListeners();
   }
 
   Future<void> deleteSelectedContacts() async {
@@ -177,7 +167,7 @@ class MediaService with ChangeNotifier {
   }
 
   void clearSelections() {
-    _selectedAssets.clear();
+    _selectedFiles.clear();
     _selectedContacts.clear();
     notifyListeners();
   }

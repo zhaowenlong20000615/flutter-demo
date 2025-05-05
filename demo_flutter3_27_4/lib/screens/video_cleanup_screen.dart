@@ -1,11 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 import '../services/media_service.dart';
 
 class VideoCleanupScreen extends StatefulWidget {
   final String title;
-  final List<File> videos;
+  final List<AssetEntity> videos;
 
   VideoCleanupScreen({
     required this.title,
@@ -17,7 +19,7 @@ class VideoCleanupScreen extends StatefulWidget {
 }
 
 class _VideoCleanupScreenState extends State<VideoCleanupScreen> {
-  Set<File> _selectedVideos = {};
+  Set<AssetEntity> _selectedVideos = {};
   bool _isSelectMode = false;
 
   @override
@@ -114,17 +116,8 @@ class _VideoCleanupScreenState extends State<VideoCleanupScreen> {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            // Video thumbnail (simple implementation)
-                            Container(
-                              color: Colors.grey[800],
-                              child: Center(
-                                child: Icon(
-                                  Icons.videocam,
-                                  color: Colors.grey[300],
-                                  size: 40,
-                                ),
-                              ),
-                            ),
+                            // Video thumbnail
+                            _buildVideoThumbnail(video),
                             // Play icon overlay
                             Center(
                               child: Icon(
@@ -147,7 +140,8 @@ class _VideoCleanupScreenState extends State<VideoCleanupScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  _getFileSizeString(video),
+                                  _formatDuration(
+                                      Duration(milliseconds: video.duration)),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -272,13 +266,62 @@ class _VideoCleanupScreenState extends State<VideoCleanupScreen> {
     );
   }
 
+  Widget _buildVideoThumbnail(AssetEntity video) {
+    return FutureBuilder<Uint8List?>(
+      future: video.thumbnailData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.data != null) {
+          return Image.memory(
+            snapshot.data!,
+            fit: BoxFit.cover,
+          );
+        } else {
+          return Container(
+            color: Colors.grey[800],
+            child: Center(
+              child: snapshot.connectionState == ConnectionState.waiting
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Icon(
+                      Icons.videocam,
+                      color: Colors.grey[300],
+                      size: 40,
+                    ),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  String _formatDuration(Duration? duration) {
+    if (duration == null) return '00:00';
+
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+
+    if (duration.inHours > 0) {
+      final hours = duration.inHours.toString().padLeft(2, '0');
+      return '$hours:$minutes:$seconds';
+    }
+
+    return '$minutes:$seconds';
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.videocam_outlined,
+            Icons.video_library_outlined,
             size: 80,
             color: Colors.grey[400],
           ),
@@ -293,7 +336,7 @@ class _VideoCleanupScreenState extends State<VideoCleanupScreen> {
           ),
           SizedBox(height: 8),
           Text(
-            '此类别中没有找到视频',
+            '暂无需要清理的项目',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -302,20 +345,5 @@ class _VideoCleanupScreenState extends State<VideoCleanupScreen> {
         ],
       ),
     );
-  }
-
-  String _getFileSizeString(File file) {
-    try {
-      final bytes = file.lengthSync();
-      if (bytes < 1024 * 1024) {
-        return '${(bytes / 1024).toStringAsFixed(1)}KB';
-      } else if (bytes < 1024 * 1024 * 1024) {
-        return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
-      } else {
-        return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)}GB';
-      }
-    } catch (e) {
-      return '0MB';
-    }
   }
 }

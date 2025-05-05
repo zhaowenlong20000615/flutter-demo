@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 import '../services/media_service.dart';
 import 'video_cleanup_screen.dart';
 import 'package:path/path.dart' as path;
@@ -22,43 +23,32 @@ class _VideoManagementScreenState extends State<VideoManagementScreen> {
     await mediaService.loadMediaFiles();
   }
 
-  // Calculate the file size in appropriate format (KB, MB, GB)
-  String _formatSize(List<File> files) {
-    final int totalBytes =
-        files.fold(0, (sum, file) => sum + file.lengthSync());
-
-    if (totalBytes < 1024) {
-      return '${totalBytes}B';
-    } else if (totalBytes < 1024 * 1024) {
-      return '${(totalBytes / 1024).toStringAsFixed(2)}KB';
-    } else if (totalBytes < 1024 * 1024 * 1024) {
-      return '${(totalBytes / (1024 * 1024)).toStringAsFixed(2)}MB';
-    } else {
-      return '${(totalBytes / (1024 * 1024 * 1024)).toStringAsFixed(2)}GB';
-    }
+  // Display count and type information
+  String _formatSize(List<AssetEntity> assets) {
+    return '${assets.length} 个视频';
   }
 
   // Find similar videos (based on name patterns and creation times)
-  List<File> _findSimilarVideos(List<File> videos) {
-    final Map<String, List<File>> similarGroups = {};
+  List<AssetEntity> _findSimilarVideos(List<AssetEntity> videos) {
+    final Map<String, List<AssetEntity>> similarGroups = {};
 
-    // Group by name pattern (without extension and sequence numbers)
-    for (final file in videos) {
-      final fileName = path.basenameWithoutExtension(file.path);
-      // Remove sequence numbers from filename (like VID_001, VID_002)
-      final basePattern = fileName.replaceAll(RegExp(r'_?\d+$'), '');
+    // Group by title pattern
+    for (final asset in videos) {
+      final title = asset.title ?? '';
+      // Remove sequence numbers from title (like VID_001, VID_002)
+      final basePattern = title.replaceAll(RegExp(r'_?\d+$'), '');
 
       if (!similarGroups.containsKey(basePattern)) {
         similarGroups[basePattern] = [];
       }
-      similarGroups[basePattern]!.add(file);
+      similarGroups[basePattern]!.add(asset);
     }
 
     // Only keep groups with multiple files
-    final List<File> result = [];
-    similarGroups.forEach((key, files) {
-      if (files.length > 1) {
-        result.addAll(files);
+    final List<AssetEntity> result = [];
+    similarGroups.forEach((key, assets) {
+      if (assets.length > 1) {
+        result.addAll(assets);
       }
     });
 
@@ -66,35 +56,35 @@ class _VideoManagementScreenState extends State<VideoManagementScreen> {
   }
 
   // Find screen recordings
-  List<File> _findScreenRecordings(List<File> videos) {
-    return videos.where((file) {
-      final lowerPath = file.path.toLowerCase();
-      return lowerPath.contains('screen_recording') ||
-          lowerPath.contains('screen_record') ||
-          lowerPath.contains('录屏') ||
-          lowerPath.contains('屏幕录制');
+  List<AssetEntity> _findScreenRecordings(List<AssetEntity> videos) {
+    return videos.where((asset) {
+      final title = asset.title?.toLowerCase() ?? '';
+      return title.contains('screen_recording') ||
+          title.contains('screen_record') ||
+          title.contains('录屏') ||
+          title.contains('屏幕录制');
     }).toList();
   }
 
-  // Find large videos (> 100MB)
-  List<File> _findLargeVideos(List<File> videos) {
-    const int largeThreshold = 100 * 1024 * 1024; // 100MB
-    return videos.where((file) => file.lengthSync() > largeThreshold).toList();
+  // Find large videos (estimate based on duration)
+  List<AssetEntity> _findLargeVideos(List<AssetEntity> videos) {
+    // We'll use duration as a proxy for size - videos longer than 3 minutes
+    const int largeThresholdSeconds = 3 * 60; // 3 minutes in seconds
+
+    return videos
+        .where((asset) =>
+            asset.duration != null && asset.duration! >= largeThresholdSeconds)
+        .toList();
   }
 
-  // Find short videos (< 10 seconds, approximated by file size)
-  List<File> _findShortVideos(List<File> videos) {
-    if (videos.isEmpty) return [];
+  // Find short videos (< 10 seconds)
+  List<AssetEntity> _findShortVideos(List<AssetEntity> videos) {
+    const int shortThresholdSeconds = 10; // 10 seconds
 
-    // Calculate average size per second (very rough approximation)
-    // Assuming about 1MB per 2 seconds for typical mobile video at medium quality
-    const int bytesPerSecond = 500 * 1024; // ~500KB per second
-    const int shortThreshold = 10 * bytesPerSecond; // 10 seconds threshold
-
-    return videos.where((file) {
-      final size = file.lengthSync();
-      return size < shortThreshold;
-    }).toList();
+    return videos
+        .where((asset) =>
+            asset.duration != null && asset.duration! < shortThresholdSeconds)
+        .toList();
   }
 
   @override
@@ -228,66 +218,46 @@ class _VideoManagementScreenState extends State<VideoManagementScreen> {
     required String size,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: Colors.blue,
-                size: 22,
-              ),
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    '$count 个文件，共 $size',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey[400],
-            ),
-          ],
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          color: Colors.blue,
+          size: 22,
         ),
       ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      subtitle: Text(
+        '$count 项, $size',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.grey[600],
+        ),
+      ),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
     );
   }
 
   Widget _buildDivider() {
     return Divider(
-      color: Colors.grey[200],
       height: 1,
-      thickness: 1,
-      indent: 76,
-      endIndent: 0,
+      thickness: 0.5,
+      indent: 70,
+      endIndent: 16,
+      color: Colors.grey[300],
     );
   }
 }

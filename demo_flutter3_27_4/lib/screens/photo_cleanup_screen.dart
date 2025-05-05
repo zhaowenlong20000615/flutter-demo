@@ -1,11 +1,13 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:photo_manager/photo_manager.dart';
 import '../services/media_service.dart';
 
 class PhotoCleanupScreen extends StatefulWidget {
   final String title;
-  final List<File> photos;
+  final List<AssetEntity> photos;
 
   PhotoCleanupScreen({
     required this.title,
@@ -17,7 +19,7 @@ class PhotoCleanupScreen extends StatefulWidget {
 }
 
 class _PhotoCleanupScreenState extends State<PhotoCleanupScreen> {
-  Set<File> _selectedPhotos = {};
+  Set<AssetEntity> _selectedPhotos = {};
   bool _isSelectMode = false;
 
   @override
@@ -111,19 +113,7 @@ class _PhotoCleanupScreenState extends State<PhotoCleanupScreen> {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          photo,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[300],
-                              child: Icon(
-                                Icons.broken_image,
-                                color: Colors.grey[600],
-                              ),
-                            );
-                          },
-                        ),
+                        child: _buildAssetThumb(photo),
                       ),
                       if (_isSelectMode)
                         Positioned(
@@ -238,6 +228,39 @@ class _PhotoCleanupScreenState extends State<PhotoCleanupScreen> {
     );
   }
 
+  Widget _buildAssetThumb(AssetEntity asset) {
+    return FutureBuilder<Uint8List?>(
+      future: asset.thumbnailData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.data != null) {
+          return Image.memory(
+            snapshot.data!,
+            fit: BoxFit.cover,
+          );
+        } else {
+          return Container(
+            color: Colors.grey[300],
+            child: Center(
+              child: snapshot.connectionState == ConnectionState.waiting
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Icon(
+                      Icons.image,
+                      color: Colors.grey[600],
+                    ),
+            ),
+          );
+        }
+      },
+    );
+  }
+
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -250,15 +273,16 @@ class _PhotoCleanupScreenState extends State<PhotoCleanupScreen> {
           ),
           SizedBox(height: 16),
           Text(
-            '暂无${widget.title}',
+            '没有${widget.title}',
             style: TextStyle(
               fontSize: 18,
+              fontWeight: FontWeight.w500,
               color: Colors.grey[600],
             ),
           ),
           SizedBox(height: 8),
           Text(
-            '所有照片已清理干净',
+            '暂无需要清理的项目',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],

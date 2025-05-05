@@ -85,5 +85,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- 防止限制照片访问时显示提示 -->
+	<key>PHPhotoLibraryPreventAutomaticLimitedAccessAlert</key>
+	<true/>
+	
+	<!-- 相册写权限 -->
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>需要写入图片到相册</string>
 </dict>
 </plist>
